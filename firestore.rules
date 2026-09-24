@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A caller is the owner of a document when they are signed in and their
+    // uid matches the document id. request.auth is null when signed out, so
+    // the explicit null check is required before reading .uid.
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Each account stores its whole history in a single document:
+    //   users/{uid} -> { history: { "YYYY-MM-DD": { ...day entry } } }
+    //
+    // "read" covers get + list, so a signed-in user can query their own
+    // document but cannot list or touch anyone else's.
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Nothing else is granted. Firestore denies by default, so any other
+    // path (including future collections) is inaccessible until a rule is
+    // added here deliberately.
+  }
+}

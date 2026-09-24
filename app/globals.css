@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --app-bg: #09090B; /* Zinc 950 */
+  --app-bg-alt: #18181B; /* Zinc 900 */
+  --glow-color: rgba(16, 185, 129, 0.2); /* Emerald glow */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: radial-gradient(circle at top center, var(--app-bg-alt) 0%, var(--app-bg) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: #FAFAFA;
+}
+
+/* Premium Animations */
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeUp {
+  0% { transform: translateY(16px); opacity: 0; filter: blur(8px); }
+  100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 15px 0 var(--glow-color); }
+  50% { box-shadow: 0 0 30px 5px var(--glow-color); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+.animate-fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-glow { animation: glowPulse 2s infinite ease-in-out; }
+
+/* Staggered children for that premium feel */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 150ms; }
+.stagger-3 { animation-delay: 250ms; }
+.stagger-4 { animation-delay: 350ms; }
+
+/* Skeleton Loader */
+.skeleton {
+  background: linear-gradient(90deg, #27272A 25%, #3F3F46 50%, #27272A 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* Glassmorphism utilities */
+.glass-panel {
+  background: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Hide scrollbar for premium look */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
 }
