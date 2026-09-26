@@ -23,7 +23,18 @@ export default function Home() {
   const { done, total } = scoreOf(today);
   const percent = Math.round((done / total) * 100) || 0;
 
-  if (!wellness.loaded) return <div className="min-h-screen bg-[#09090B]" />;
+  if (!wellness.loaded) {
+    return (
+      <main className="mx-auto min-h-screen max-w-md px-5 pt-10" aria-busy="true">
+        <p role="status" className="mb-8 text-sm text-zinc-400">Loading your wellness tracker…</p>
+        <div aria-hidden="true" className="space-y-6">
+          <div className="skeleton h-12 w-48 rounded-xl" />
+          <div className="skeleton h-72 rounded-3xl" />
+          <div className="skeleton h-56 rounded-3xl" />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-32 pt-10">
@@ -31,7 +42,7 @@ export default function Home() {
         <header className="mb-8 flex items-center justify-between animate-fade-up">
           <div>
             <p className="text-[13px] font-medium uppercase tracking-wider text-zinc-400">
-              {new Date().toLocaleDateString("en-US", {
+              {new Date(`${wellness.todayKey}T12:00:00`).toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
@@ -55,7 +66,7 @@ export default function Home() {
       )}
 
       {tab === "today" && (
-        <TodayTab today={today} updateToday={wellness.updateToday} />
+        <TodayTab key={`${wellness.user?.uid ?? "guest"}:${wellness.todayKey}`} today={today} updateToday={wellness.updateToday} />
       )}
 
       {tab === "calendar" && (

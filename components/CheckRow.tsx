@@ -15,7 +15,7 @@ export default function CheckRow({
     <button
       onClick={onToggle}
       aria-pressed={checked}
-      className="group flex w-full items-center justify-between py-4 text-left focus:outline-none"
+      className="group flex w-full items-center justify-between rounded-lg py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
     >
       <span
         className={`text-[15px] font-medium transition-all duration-300 ${checked ? "text-zinc-50" : "text-zinc-400 group-hover:text-zinc-300"}`}

@@ -57,6 +57,24 @@ function historyOf(
 }
 
 // --- scoreOf ---
+describe("cleared-entry sync", () => {
+  test("keeps an offline clear after reload when merging an older cloud entry", () => {
+    const key = "2026-09-26";
+    const cleared = entry({ updatedAt: 200 });
+    const reloaded = normalizeHistory(JSON.parse(JSON.stringify({ [key]: cleared })));
+    const remote = normalizeHistory({ [key]: entry({ morningMed: true, updatedAt: 100 }) });
+    assert.deepEqual(mergeHistories(reloaded, remote)[key], cleared);
+  });
+
+  test("keeps a cloud clear when an older device syncs its checked entry", () => {
+    const key = "2026-09-26";
+    const cleared = entry({ updatedAt: 200 });
+    const remote = normalizeHistory({ [key]: cleared });
+    const local = { [key]: entry({ weight: 80, updatedAt: 100 }) };
+    assert.deepEqual(mergeHistories(local, remote)[key], cleared);
+  });
+});
+
 describe("scoreOf", () => {
   test("counts 0 of 10 for an empty day", () => {
     assert.deepEqual(scoreOf(emptyEntry()), { done: 0, total: 10 });

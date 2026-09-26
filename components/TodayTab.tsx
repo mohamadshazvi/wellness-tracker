@@ -16,17 +16,19 @@ export default function TodayTab({
   // is never bounced; when it is null the field mirrors the committed value,
   // so weight changes merged from the cloud flow straight through.
   const [weightDraft, setWeightDraft] = useState<string | null>(null);
+  const [weightError, setWeightError] = useState<string | null>(null);
   const weightText = weightDraft ?? (today.weight === null ? "" : String(today.weight));
 
   const commitWeight = () => {
     if (weightDraft === null) return;
     const text = weightDraft.trim();
     const parsed = text === "" ? null : Number(text);
-    if (text === "" || Number.isFinite(parsed)) {
-      updateToday({ weight: parsed });
+    if (parsed !== null && (!Number.isFinite(parsed) || parsed <= 0)) {
+      setWeightError("Enter a weight greater than 0 kg, or leave it blank to clear.");
+      return;
     }
-    // Drop the draft either way: a valid parse is committed above and an
-    // invalid one is discarded, restoring the last committed value.
+    updateToday({ weight: parsed });
+    setWeightError(null);
     setWeightDraft(null);
   };
   const togglePrayer = (name: string) =>
@@ -102,8 +104,13 @@ export default function TodayTab({
               type="text"
               inputMode="decimal"
               autoComplete="off"
+              aria-invalid={weightError ? true : undefined}
+              aria-describedby={weightError ? "body-weight-error" : undefined}
               value={weightText}
-              onChange={(e) => setWeightDraft(e.target.value)}
+              onChange={(e) => {
+                setWeightDraft(e.target.value);
+                setWeightError(null);
+              }}
               onBlur={commitWeight}
               onKeyDown={(e) => {
                 if (e.key === "Enter") (e.target as HTMLInputElement).blur();
@@ -114,6 +121,11 @@ export default function TodayTab({
             <span className="text-[13px] font-medium text-zinc-500">kg</span>
           </div>
         </div>
+        {weightError && (
+          <p id="body-weight-error" role="alert" className="pb-4 text-sm text-rose-400">
+            {weightError}
+          </p>
+        )}
       </Section>
     </div>
   );

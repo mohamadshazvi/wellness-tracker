@@ -213,8 +213,8 @@ export function isEmptyEntry(entry: DayEntry) {
 
 /**
  * Validates an untrusted history blob (Firestore document or localStorage),
- * keeping only well-formed YYYY-MM-DD keys. Entries that carry no information
- * are dropped so empty placeholder days never accumulate.
+ * keeping only well-formed YYYY-MM-DD keys. Untouched empty placeholders are
+ * dropped; timestamped empty entries preserve explicit clears during sync.
  */
 export function normalizeHistory(raw: unknown): History {
   if (!isRecord(raw)) return {};
@@ -223,7 +223,7 @@ export function normalizeHistory(raw: unknown): History {
   for (const [key, value] of Object.entries(raw)) {
     if (!DATE_KEY_RE.test(key)) continue;
     const entry = normalizeEntry(value);
-    if (!isEmptyEntry(entry)) history[key] = entry;
+    if (!isEmptyEntry(entry) || entry.updatedAt > 0) history[key] = entry;
   }
   return history;
 }
