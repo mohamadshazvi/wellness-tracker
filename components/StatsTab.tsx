@@ -50,20 +50,23 @@ function calculateTotals(entries: [string, DayEntry][]) {
 
 export default function StatsTab({
   history,
+  weights,
   monthOffset,
   range,
   onRangeChange,
 }: {
   history: History;
+  weights: Record<string, { weight: number | null }>;
   monthOffset: number;
   range: StatsRange;
   onRangeChange: (range: StatsRange) => void;
 }) {
   const { year, monthIndex } = getMonthView(monthOffset);
 
-  const monthEntries = Object.entries(history)
-    .filter(([k]) => k.startsWith(monthKeyPrefix(year, monthIndex)))
-    .sort(([a], [b]) => a.localeCompare(b)); // Chronological order
+  const monthEntries = [...new Set([...Object.keys(history), ...Object.keys(weights)])]
+    .filter((k) => k.startsWith(monthKeyPrefix(year, monthIndex)) && (!!history[k] || weights[k]?.weight != null))
+    .sort((a, b) => a.localeCompare(b))
+    .map((key) => [key, history[key] ?? emptyEntry()] as [string, DayEntry]);
   const weeklyEntries = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i)); // Chronological order
@@ -77,7 +80,7 @@ export default function StatsTab({
   const chartData = activeEntries.map(([date, entry]) => ({
     name: date.slice(5).replace("-", "/"), // e.g., 09/10
     score: scoreOf(entry).done,
-    weight: entry.weight ?? null,
+    weight: weights[date]?.weight ?? null,
   }));
 
   return (

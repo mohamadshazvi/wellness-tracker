@@ -9,6 +9,7 @@
 
 // --- Constants & Types ---
 export const PRAYERS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"] as const;
+export const VOLUNTARY_PRAYERS = ["Tahajjud", "Duha"] as const;
 export const STORAGE_KEY = "wellness-history-v4";
 
 /**
@@ -22,6 +23,7 @@ export function storageKeyFor(uid: string | null) {
 
 export type DayEntry = {
   prayers: Record<string, boolean>;
+  voluntaryPrayers: Record<string, boolean>;
   noDinner: boolean;
   gymDay: boolean;
   restDay: boolean;
@@ -39,6 +41,7 @@ export type History = Record<string, DayEntry>;
 export function emptyEntry(): DayEntry {
   return {
     prayers: Object.fromEntries(PRAYERS.map((p) => [p, false])),
+    voluntaryPrayers: Object.fromEntries(VOLUNTARY_PRAYERS.map((p) => [p, false])),
     noDinner: false,
     gymDay: false,
     restDay: false,
@@ -191,6 +194,10 @@ export function normalizeEntry(raw: unknown): DayEntry {
   for (const prayer of PRAYERS) {
     entry.prayers[prayer] = asBool(prayers[prayer]);
   }
+  const voluntary = isRecord(raw.voluntaryPrayers) ? raw.voluntaryPrayers : {};
+  for (const prayer of VOLUNTARY_PRAYERS) {
+    entry.voluntaryPrayers[prayer] = asBool(voluntary[prayer] ?? prayers[prayer]);
+  }
 
   entry.noDinner = asBool(raw.noDinner);
   entry.gymDay = asBool(raw.gymDay);
@@ -208,7 +215,24 @@ export function normalizeEntry(raw: unknown): DayEntry {
 }
 
 export function isEmptyEntry(entry: DayEntry) {
-  return entry.weight === null && scoreOf(entry).done === 0;
+  return entry.weight === null && scoreOf(entry).done === 0 &&
+    !VOLUNTARY_PRAYERS.some((prayer) => entry.voluntaryPrayers[prayer]);
+}
+
+/** Count perfect days and the longest run, including historical runs. */
+export function perfectDaySummary(history: History) {
+  const days = Object.keys(history).filter((key) => isFullDay(history[key])).sort();
+  let longest = 0;
+  let current = 0;
+  let previous = "";
+  for (const day of days) {
+    const expected = new Date(`${previous}T12:00:00`);
+    expected.setDate(expected.getDate() + 1);
+    current = previous && getLocalISODate(expected) === day ? current + 1 : 1;
+    longest = Math.max(longest, current);
+    previous = day;
+  }
+  return { total: days.length, longest };
 }
 
 /**

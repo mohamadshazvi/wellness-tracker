@@ -14,26 +14,31 @@ export default function AuthPanel({
   onLoginWithProvider,
   onResetPassword,
   authError,
+  onContinueLocally,
 }: {
   onLogin: (
     email: string,
     password: string,
     mode: "signin" | "signup",
+    name?: string,
   ) => Promise<void>;
   onLoginWithProvider: (
     provider: "google" | "facebook" | "apple",
   ) => Promise<void>;
   onResetPassword: (email: string) => Promise<boolean>;
   authError: string | null;
+  onContinueLocally?: () => void;
 }) {
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
   const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
+  const [nameInput, setNameInput] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [resetNotice, setResetNotice] = useState<string | null>(null);
 
-  const submit = () => {
+  const submit = async () => {
     setResetNotice(null);
     if (!emailInput.trim() || !passwordInput) {
       setValidationError("Enter both your email address and a password.");
@@ -43,8 +48,14 @@ export default function AuthPanel({
       setValidationError("Choose a password with at least 6 characters.");
       return;
     }
+    if (authMode === "signup" && !nameInput.trim()) {
+      setValidationError("Enter your name to create an account.");
+      return;
+    }
     setValidationError(null);
-    onLogin(emailInput.trim(), passwordInput, authMode);
+    setSubmitting(true);
+    try { await onLogin(emailInput.trim(), passwordInput, authMode, nameInput); }
+    finally { setSubmitting(false); }
   };
 
   return (
@@ -86,6 +97,10 @@ export default function AuthPanel({
       </div>
 
       <div className="space-y-3">
+        {authMode === "signup" && <label className="block">
+          <span className="sr-only">Your name</span>
+          <input type="text" autoComplete="name" placeholder="Your name" value={nameInput} onChange={(e) => setNameInput(e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-zinc-950/70 px-4 py-3.5 text-sm text-zinc-50 focus:border-emerald-500" />
+        </label>}
         <label className="relative block">
           <span className="sr-only">Email address</span>
           <Mail
@@ -170,9 +185,10 @@ export default function AuthPanel({
 
       <button
         type="submit"
+        disabled={submitting}
         className="mt-6 w-full rounded-xl border border-emerald-300/20 bg-emerald-400 py-3.5 text-[14px] font-bold text-zinc-950 shadow-[0_8px_24px_rgba(16,185,129,0.18)] transition-all hover:bg-emerald-300 hover:shadow-[0_10px_30px_rgba(16,185,129,0.28)] active:scale-[0.98]"
       >
-        {authMode === "signin" ? "Sign in" : "Create account"}
+        {submitting ? "Please wait…" : authMode === "signin" ? "Sign in" : "Create account"}
       </button>
 
       <div className="my-6 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
@@ -203,6 +219,7 @@ export default function AuthPanel({
       <p className="mt-5 text-center text-[12px] text-zinc-500">
         Your wellness data is protected by Firebase authentication.
       </p>
+      {onContinueLocally && <button type="button" onClick={onContinueLocally} className="mt-5 w-full rounded-xl border border-zinc-700 py-3 text-sm text-zinc-300 hover:bg-zinc-800">Continue locally</button>}
     </form>
   );
 }

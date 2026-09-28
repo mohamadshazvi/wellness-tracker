@@ -11,11 +11,12 @@ import {
   OAuthProvider,
   sendPasswordResetEmail,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { authErrorMessage } from "../lib/wellness";
 
-export type WellnessUser = { email: string; uid: string };
+export type WellnessUser = { email: string; uid: string; name: string; joinedAt: string | null };
 
 export function useWellnessAuth(onIdentityChange: (uid: string | null) => void) {
   const [user, setUser] = useState<WellnessUser | null>(null);
@@ -23,15 +24,20 @@ export function useWellnessAuth(onIdentityChange: (uid: string | null) => void) 
 
   useEffect(() => onAuthStateChanged(auth, (firebaseUser) => {
     setAuthError(null);
-    setUser(firebaseUser ? { email: firebaseUser.email || "", uid: firebaseUser.uid } : null);
+    setUser(firebaseUser ? { email: firebaseUser.email || "", uid: firebaseUser.uid,
+      name: firebaseUser.displayName || "", joinedAt: firebaseUser.metadata.creationTime ?? null } : null);
     onIdentityChange(firebaseUser?.uid ?? null);
   }), [onIdentityChange]);
 
-  const login = async (email: string, password: string, mode: "signin" | "signup") => {
+  const login = async (email: string, password: string, mode: "signin" | "signup", name = "") => {
     setAuthError(null);
     try {
       if (mode === "signup") {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
+        try { await updateProfile(credential.user, { displayName: name.trim() }); }
+        catch (error) { console.error("Account created, but name could not be saved:", error); }
+        setUser({ email: credential.user.email || "", uid: credential.user.uid,
+          name: name.trim(), joinedAt: credential.user.metadata.creationTime ?? null });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
@@ -71,5 +77,14 @@ export function useWellnessAuth(onIdentityChange: (uid: string | null) => void) 
 
   const logout = () => signOut(auth);
 
-  return { user, authError, login, loginWithProvider, resetPassword, logout };
+  const changeName = async (name: string) => {
+    if (!auth.currentUser || !name.trim()) return false;
+    try {
+      await updateProfile(auth.currentUser, { displayName: name.trim() });
+      setUser((current) => current ? { ...current, name: name.trim() } : current);
+      return true;
+    } catch { return false; }
+  };
+
+  return { user, authError, login, loginWithProvider, resetPassword, logout, changeName };
 }

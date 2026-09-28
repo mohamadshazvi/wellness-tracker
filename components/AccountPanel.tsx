@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Award } from "lucide-react";
 import Section from "./Section";
 import { COLORS } from "../lib/theme";
@@ -9,6 +9,7 @@ import {
   allStreaks,
   emptyEntry,
   syncedLabel,
+  perfectDaySummary,
   type History,
 } from "../lib/wellness";
 
@@ -21,8 +22,9 @@ export default function AccountPanel({
   lastSyncedAt,
   onSync,
   onLogout,
+  onChangeName,
 }: {
-  user: { email: string; uid: string };
+  user: { email: string; uid: string; name: string; joinedAt: string | null };
   history: History;
   todayKey: string;
   syncStatus: "idle" | "saving" | "saved" | "error";
@@ -30,7 +32,10 @@ export default function AccountPanel({
   lastSyncedAt: number | null;
   onSync: () => Promise<boolean>;
   onLogout: () => void;
+  onChangeName: (name: string) => Promise<boolean>;
 }) {
+  const [nameStatus, setNameStatus] = useState("");
+  const summary = perfectDaySummary(history);
   const unlocked = useMemo(() => {
     const streaks = allStreaks(history);
     const today = history[todayKey] ?? emptyEntry();
@@ -41,15 +46,19 @@ export default function AccountPanel({
     <div className="space-y-6">
       <div className="rounded-3xl bg-zinc-900/80 p-6 shadow-2xl border border-white/5 backdrop-blur-xl flex items-center gap-5">
         <div className="h-16 w-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-[24px] font-bold text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-          {user.email.charAt(0).toUpperCase()}
+          {(user.name || user.email).charAt(0).toUpperCase()}
         </div>
         <div>
-          <p className="text-[18px] font-bold text-zinc-50">{user.email}</p>
-          <p className="text-[13px] text-emerald-400 flex items-center gap-1 mt-0.5">
-            <Award size={14} /> Pro Member
-          </p>
+          <p className="text-[18px] font-bold text-zinc-50">{user.name || "Wellness member"}</p>
+          <p className="text-[13px] text-zinc-400">{user.email}</p>
+          {user.joinedAt && <p className="text-xs text-zinc-500">Joined {new Date(user.joinedAt).toLocaleDateString()}</p>}
         </div>
       </div>
+
+      <Section title="Your Progress"><div className="grid grid-cols-2 gap-3 py-3 text-sm text-zinc-400">
+        <p>Longest perfect streak <strong className="block text-xl text-zinc-50">{summary.longest} days</strong></p>
+        <p>Total perfect days <strong className="block text-xl text-zinc-50">{summary.total}</strong></p>
+      </div></Section>
 
       <Section title="Database Sync">
         <div className="py-4">
@@ -135,6 +144,18 @@ export default function AccountPanel({
           })}
         </div>
       </Section>
+
+      <Section title="Settings"><form onSubmit={async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const input = form.elements.namedItem("displayName") as HTMLInputElement;
+        const success = await onChangeName(input.value);
+        setNameStatus(success ? "Name saved" : "Could not save name");
+      }} className="space-y-3 py-3">
+        <label className="block text-sm text-zinc-400">Display name<input name="displayName" key={user.name} defaultValue={user.name} required className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-zinc-50" /></label>
+        <button type="submit" className="rounded-xl border border-zinc-700 px-4 py-2 text-sm text-zinc-200">Save name</button>
+        <p role="status" className="text-xs text-zinc-400">{nameStatus}</p>
+      </form></Section>
 
       <button
         onClick={onLogout}

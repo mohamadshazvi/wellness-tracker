@@ -37,6 +37,26 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Firebase setup
 
+## Using the tracker
+
+On first launch, sign in, create an account, or choose **Continue locally**.
+Local mode is remembered on this device. Signing in later offers an optional
+one-time import of this device's guest progress; the guest copy remains here.
+
+Today contains five obligatory prayers and two visually separate voluntary
+prayers. Voluntary prayers do not affect the 10-point daily score or streaks.
+Weekly side quests run Monday through Sunday in the device's local timezone:
+hand nails once (due Thursday), foot nails on two distinct days, and laundry
+once (due Saturday). Tasks may still be completed after their due day within
+the same week. The **Weight** tab logs one editable record per day with an
+optional note or milestone; old daily weight entries migrate automatically.
+
+Daily history, weekly quests, and weight records are saved locally, then synced
+to Firestore for signed-in users. **Personal Goal** is different: it is hidden
+by default and stored only in account-scoped browser storage on this device.
+It is never uploaded or included in guest imports. Clearing browser data will
+erase it, and the collapsed panel is not a security barrier on a shared device.
+
 Each account is stored as a single document, `users/{uid}`, holding a
 `history` map of `YYYY-MM-DD` to that day's entry. `firestore.rules` restricts
 every document to its owning account.

@@ -4,7 +4,7 @@ import AccountPanel from "./AccountPanel";
 import AuthPanel from "./AuthPanel";
 import type { WellnessData } from "../hooks/useWellnessData";
 
-export default function ProfileTab({ wellness }: { wellness: WellnessData }) {
+export default function ProfileTab({ wellness, onContinueLocally }: { wellness: WellnessData; onContinueLocally?: () => void }) {
   return (
     <div className="animate-fade-up">
       <header className="mb-8">
@@ -26,6 +26,7 @@ export default function ProfileTab({ wellness }: { wellness: WellnessData }) {
           lastSyncedAt={wellness.lastSyncedAt}
           onSync={wellness.syncData}
           onLogout={wellness.logout}
+          onChangeName={wellness.changeName}
         />
       ) : (
         <AuthPanel
@@ -33,6 +34,7 @@ export default function ProfileTab({ wellness }: { wellness: WellnessData }) {
           onLoginWithProvider={wellness.loginWithProvider}
           onResetPassword={wellness.resetPassword}
           authError={wellness.authError}
+          onContinueLocally={onContinueLocally}
         />
       )}
     </div>
