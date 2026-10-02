@@ -291,6 +291,30 @@ export function authErrorMessage(error: unknown, mode?: "signin" | "signup") {
   if (code === "auth/invalid-email") {
     return "Enter a valid email address.";
   }
+  if (code === "auth/unauthorized-domain") {
+    return "Social sign-in is not configured for this website. Add this website's hostname to Firebase Authentication's authorized domains, or use email and password.";
+  }
+  if (code === "auth/operation-not-allowed") {
+    return "This sign-in method is not enabled. Enable it in Firebase Authentication, or try another sign-in method.";
+  }
+  if (code === "auth/popup-blocked") {
+    return "Your browser blocked the sign-in window. Allow popups for this website and try again.";
+  }
+  if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+    return "Sign-in was cancelled. Try again when you are ready.";
+  }
+  if (code === "auth/account-exists-with-different-credential") {
+    return "An account already exists with this email. Sign in using the method you originally used.";
+  }
+  if (code === "auth/network-request-failed") {
+    return "Could not reach the sign-in service. Check your connection and try again.";
+  }
+  if (code === "auth/too-many-requests") {
+    return "Too many sign-in attempts. Please wait a while and try again.";
+  }
+  if (code === "auth/invalid-oauth-client-id" || code === "auth/invalid-oauth-provider") {
+    return "The social sign-in credentials could not be accepted. Check the provider configuration in Firebase Authentication and try again.";
+  }
 
   return "Authentication failed. Please try again.";
 }

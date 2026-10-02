@@ -25,13 +25,17 @@ export default function Home() {
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      setLocalMode(localStorage.getItem("wellness:local-mode") === "yes");
+      try {
+        setLocalMode(localStorage.getItem("wellness:local-mode") === "yes");
+      } catch { /* Storage unavailable; still show onboarding. */ }
       setSplashDone(true);
     }, 900);
     return () => window.clearTimeout(timeout);
   }, []);
   const continueLocally = () => {
-    localStorage.setItem("wellness:local-mode", "yes");
+    try {
+      localStorage.setItem("wellness:local-mode", "yes");
+    } catch { /* Local mode can continue in memory for this session. */ }
     setLocalMode(true);
     setTab("today");
   };

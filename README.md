@@ -85,7 +85,25 @@ npx firebase-tools deploy --only firestore:rules
 `.firebaserc` pins the default project to `wellness-tracker-bb385`, so the
 deploy cannot target the wrong project by accident.
 
-### 3. Verify
+### 3. Configure sign-in
+
+In Firebase Console → Authentication → Settings → Authorized domains, add
+every hostname where this app is served (without `https://` or a path).
+For the current preview deployment, add
+`wellness-tracker-pys7amkgh-shaz17.vercel.app`. Also add the stable production
+hostname; preview deployment hostnames may change.
+
+Under Authentication → Sign-in method, enable **Email/Password** and
+**Google**. For Google, select a project support email. Google is the only
+social sign-in provider offered by this app.
+
+The Firebase return URL for this project is
+`https://wellness-tracker-bb385.firebaseapp.com/__/auth/handler`.
+Keep provider secrets in the provider/Firebase consoles, not in client code.
+Allow browser popups when testing social sign-in. A successful popup launch
+is not a complete login test: finish signing in with your own provider account.
+
+### 4. Verify
 
 Sign in with one account, then confirm a second account cannot read the first
 account's document. The app reports sync failures under **Profile → Database

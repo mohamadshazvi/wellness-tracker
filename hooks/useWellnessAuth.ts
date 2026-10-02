@@ -7,8 +7,6 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  FacebookAuthProvider,
-  OAuthProvider,
   sendPasswordResetEmail,
   signOut,
   updateProfile,
@@ -46,13 +44,9 @@ export function useWellnessAuth(onIdentityChange: (uid: string | null) => void) 
     }
   };
 
-  const loginWithProvider = async (providerName: "google" | "facebook" | "apple") => {
+  const loginWithProvider = async () => {
     setAuthError(null);
-    const provider = providerName === "google"
-      ? new GoogleAuthProvider()
-      : providerName === "facebook"
-        ? new FacebookAuthProvider()
-        : new OAuthProvider("apple.com");
+    const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
     } catch (error: unknown) {

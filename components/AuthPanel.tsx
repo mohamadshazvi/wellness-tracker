@@ -1,13 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AlertCircle, Eye, EyeOff, Mail } from "lucide-react";
-
-const PROVIDERS = [
-  { id: "google" as const, label: "Google", mark: "G" },
-  { id: "facebook" as const, label: "Facebook", mark: "f" },
-  { id: "apple" as const, label: "Apple", mark: "apple" },
-];
 
 export default function AuthPanel({
   onLogin,
@@ -23,7 +17,7 @@ export default function AuthPanel({
     name?: string,
   ) => Promise<void>;
   onLoginWithProvider: (
-    provider: "google" | "facebook" | "apple",
+    provider: "google",
   ) => Promise<void>;
   onResetPassword: (email: string) => Promise<boolean>;
   authError: string | null;
@@ -34,11 +28,14 @@ export default function AuthPanel({
   const [passwordInput, setPasswordInput] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submittingProvider, setSubmittingProvider] = useState<string | null>(null);
+  const pending = useRef(false);
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [resetNotice, setResetNotice] = useState<string | null>(null);
 
   const submit = async () => {
+    if (pending.current) return;
     setResetNotice(null);
     if (!emailInput.trim() || !passwordInput) {
       setValidationError("Enter both your email address and a password.");
@@ -53,14 +50,32 @@ export default function AuthPanel({
       return;
     }
     setValidationError(null);
+    pending.current = true;
     setSubmitting(true);
     try { await onLogin(emailInput.trim(), passwordInput, authMode, nameInput); }
-    finally { setSubmitting(false); }
+    finally { pending.current = false; setSubmitting(false); }
+  };
+
+  const submitProvider = async () => {
+    if (pending.current) return;
+    pending.current = true;
+    setValidationError(null);
+    setResetNotice(null);
+    setSubmitting(true);
+    setSubmittingProvider("Google");
+    // Start the popup directly from the click, before any asynchronous work.
+    try { await onLoginWithProvider("google"); }
+    finally {
+      pending.current = false;
+      setSubmitting(false);
+      setSubmittingProvider(null);
+    }
   };
 
   return (
     <form
       noValidate
+      aria-busy={submitting}
       onSubmit={(e) => {
         e.preventDefault();
         submit();
@@ -88,6 +103,7 @@ export default function AuthPanel({
             key={mode}
             type="button"
             aria-pressed={authMode === mode}
+            disabled={submitting}
             onClick={() => setAuthMode(mode)}
             className={`flex-1 rounded-lg py-2.5 text-[13px] font-semibold transition-all ${authMode === mode ? "bg-zinc-800 text-zinc-50 shadow-sm" : "text-zinc-500 hover:text-zinc-300"}`}
           >
@@ -154,6 +170,7 @@ export default function AuthPanel({
       {authMode === "signin" && (
         <button
           type="button"
+          disabled={submitting}
           onClick={async () => {
             setValidationError(null);
             if (!emailInput.trim()) {
@@ -197,29 +214,22 @@ export default function AuthPanel({
         <div className="h-px flex-1 bg-zinc-800" />
       </div>
 
-      <div className="grid grid-cols-3 gap-2.5">
-        {PROVIDERS.map((provider, index) => (
-          <button
-            key={provider.id}
-            type="button"
-            aria-label={`Continue with ${provider.label}`}
-            onClick={() => onLoginWithProvider(provider.id)}
-            className={`group flex h-12 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/45 text-zinc-300 transition-all hover:-translate-y-0.5 hover:border-zinc-600 hover:bg-zinc-800 hover:text-zinc-50 active:translate-y-0 animate-fade-up stagger-${index + 1}`}
-          >
-            <span
-              className={`text-[20px] font-bold leading-none ${provider.id === "google" ? "text-red-400" : provider.id === "facebook" ? "text-blue-400" : "text-zinc-100"}`}
-            >
-              {provider.mark === "apple" ? "A" : provider.mark}
-            </span>
-            <span className="sr-only">{provider.label}</span>
-          </button>
-        ))}
-      </div>
+      <button
+        type="button"
+        disabled={submitting}
+        onClick={submitProvider}
+        className="group flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-zinc-800 bg-zinc-950/45 text-zinc-300 transition-all hover:-translate-y-0.5 hover:border-zinc-600 hover:bg-zinc-800 hover:text-zinc-50 active:translate-y-0 animate-fade-up stagger-1"
+      >
+        <span aria-hidden="true" className="text-[20px] font-bold leading-none text-red-400">G</span>
+        <span className="text-sm font-semibold">Continue with Google</span>
+      </button>
+
+      {submittingProvider && <p role="status" className="mt-3 text-center text-xs text-zinc-400">Waiting for {submittingProvider} sign-in…</p>}
 
       <p className="mt-5 text-center text-[12px] text-zinc-500">
         Your wellness data is protected by Firebase authentication.
       </p>
-      {onContinueLocally && <button type="button" onClick={onContinueLocally} className="mt-5 w-full rounded-xl border border-zinc-700 py-3 text-sm text-zinc-300 hover:bg-zinc-800">Continue locally</button>}
+      {onContinueLocally && <button type="button" disabled={submitting} onClick={onContinueLocally} className="mt-5 w-full rounded-xl border border-zinc-700 py-3 text-sm text-zinc-300 hover:bg-zinc-800">Continue locally</button>}
     </form>
   );
 }

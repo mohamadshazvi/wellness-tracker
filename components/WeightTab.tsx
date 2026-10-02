@@ -10,9 +10,15 @@ export default function WeightTab({ weights, todayKey, onSave }: {
   onSave: (date: string, record: Omit<WeightRecord, "updatedAt">) => void;
 }) {
   const [date, setDate] = useState(todayKey);
-  const [weight, setWeight] = useState("");
-  const [note, setNote] = useState("");
-  const [milestone, setMilestone] = useState("");
+  // Untouched fields follow the saved record, including late cloud updates.
+  // A non-null draft preserves active edits and intentional empty strings.
+  const [weightDraft, setWeight] = useState<string | null>(null);
+  const [noteDraft, setNote] = useState<string | null>(null);
+  const [milestoneDraft, setMilestone] = useState<string | null>(null);
+  const record = weights[date];
+  const weight = weightDraft ?? (record?.weight == null ? "" : String(record.weight));
+  const note = noteDraft ?? record?.note ?? "";
+  const milestone = milestoneDraft ?? record?.milestone ?? "";
   const [selectedMilestone, setSelectedMilestone] = useState("");
   const [error, setError] = useState("");
   const { entries, latest, change, lowest, highest } = weightSummary(weights);
@@ -24,11 +30,10 @@ export default function WeightTab({ weights, todayKey, onSave }: {
   }));
 
   const edit = (key: string) => {
-    const item = weights[key];
     setDate(key);
-    setWeight(item.weight === null ? "" : String(item.weight));
-    setNote(item.note);
-    setMilestone(item.milestone);
+    setWeight(null);
+    setNote(null);
+    setMilestone(null);
     setError("");
   };
   const save = () => {
@@ -40,6 +45,9 @@ export default function WeightTab({ weights, todayKey, onSave }: {
       setError("Enter a weight greater than 0 kg."); return;
     }
     onSave(date, { weight: value, note: note.trim().slice(0, 200), milestone: milestone.trim().slice(0, 80) });
+    setWeight(null);
+    setNote(null);
+    setMilestone(null);
     setError("");
   };
   const formatChange = (value: number | null) => value === null ? "—" : `${value > 0 ? "+" : ""}${Number(value.toFixed(2))} kg`;
@@ -79,7 +87,7 @@ export default function WeightTab({ weights, todayKey, onSave }: {
     <section className="rounded-3xl border border-white/5 bg-zinc-900/80 p-5">
       <h2 className="mb-4 text-lg font-bold">Log weight</h2>
       <div className="space-y-3">
-        <label className="block text-sm text-zinc-400">Date<input type="date" max={todayKey} value={date} onChange={(e) => { setDate(e.target.value); const item = weights[e.target.value]; setWeight(item?.weight == null ? "" : String(item.weight)); setNote(item?.note ?? ""); setMilestone(item?.milestone ?? ""); }} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-zinc-50" /></label>
+        <label className="block text-sm text-zinc-400">Date<input type="date" max={todayKey} value={date} onChange={(e) => edit(e.target.value)} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-zinc-50" /></label>
         <label className="block text-sm text-zinc-400">Weight (kg)<input inputMode="decimal" type="text" value={weight} onChange={(e) => setWeight(e.target.value)} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-zinc-50" /></label>
         <label className="block text-sm text-zinc-400">Note (optional)<input maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-zinc-50" /></label>
         <label className="block text-sm text-zinc-400">Milestone label (optional)<input maxLength={80} value={milestone} onChange={(e) => setMilestone(e.target.value)} placeholder="Started Gym" className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-3 text-zinc-50" /></label>
