@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { AlertCircle, Eye, EyeOff, Mail } from "lucide-react";
 
 export default function AuthPanel({
@@ -220,7 +221,7 @@ export default function AuthPanel({
         onClick={submitProvider}
         className="group flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-zinc-800 bg-zinc-950/45 text-zinc-300 transition-all hover:-translate-y-0.5 hover:border-zinc-600 hover:bg-zinc-800 hover:text-zinc-50 active:translate-y-0 animate-fade-up stagger-1"
       >
-        <span aria-hidden="true" className="text-[20px] font-bold leading-none text-red-400">G</span>
+        <Image src="/google.svg" alt="" width={20} height={20} className="h-5 w-5 shrink-0 object-contain" />
         <span className="text-sm font-semibold">Continue with Google</span>
       </button>
 
