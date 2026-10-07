@@ -15,6 +15,7 @@ export default function TodayTab({
   togglePersonalGoal,
   toggleQuest,
   onWeightOpen,
+  showWeeklyQuests = true,
 }: {
   today: DayEntry;
   updateToday: (patch: Partial<DayEntry>) => void;
@@ -24,6 +25,7 @@ export default function TodayTab({
   togglePersonalGoal: () => void;
   toggleQuest: (id: QuestId, day?: string) => void;
   onWeightOpen: () => void;
+  showWeeklyQuests?: boolean;
 }) {
   const [personalOpen, setPersonalOpen] = useState(false);
   const togglePrayer = (name: string) =>
@@ -103,7 +105,7 @@ export default function TodayTab({
         />
         <button type="button" onClick={onWeightOpen} className="py-4 text-sm text-emerald-400">Open weight tracker →</button>
       </Section>
-      <Section title="This Week’s Quests" staggerClass="stagger-4">
+      {showWeeklyQuests && <Section title="This Week’s Quests" staggerClass="stagger-4">
         <p className="py-2 text-xs text-zinc-500">Side quests reset each Monday. Tap once per day to record progress.</p>
         {QUESTS.map((quest) => {
           const days = extras.quests[`${weekKey(todayKey)}:${quest.id}`]?.days ?? [];
@@ -118,11 +120,11 @@ export default function TodayTab({
             {days.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{days.map((day) => <button key={day} type="button" aria-label={`Remove ${quest.label} completion for ${day}`} onClick={() => toggleQuest(quest.id, day)} className="rounded-md border border-zinc-700 px-2 py-1 text-xs text-zinc-400">{day.slice(5)} ×</button>)}</div>}
           </div>;
         })}
-      </Section>
+      </Section>}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
         <button type="button" onClick={() => setPersonalOpen((open) => !open)} aria-expanded={personalOpen} className="w-full text-left text-sm text-zinc-400">Personal Goal <span className="float-right">{personalOpen ? "−" : "+"}</span></button>
         {personalOpen && <div className="mt-4 border-t border-zinc-800 pt-2">
-          <CheckRow label="Stayed on track today" checked={privateChecked} onToggle={togglePersonalGoal} />
+          <CheckRow label={showWeeklyQuests ? "Stayed on track today" : "Stayed on track this day"} checked={privateChecked} onToggle={togglePersonalGoal} />
           <p className="text-xs text-zinc-500">Stored only on this device. Clearing browser data removes it.</p>
         </div>}
       </div>

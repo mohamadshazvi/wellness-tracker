@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { auth } from "../lib/firebase";
 import {
-  emptyEntry,
+  editableDayKeys,
   getLocalISODate,
   syncErrorMessage,
+  updateRecentDay,
   type DayEntry,
 } from "../lib/wellness";
 import {
@@ -101,15 +102,17 @@ export function useWellnessHistory(todayKey: string) {
     return () => window.clearTimeout(timeout);
   }, [store, loaded, uid]);
 
-  const updateToday = (patch: Partial<DayEntry>) => {
+  const updateDay = (day: string, patch: Partial<DayEntry>) => {
     // A click can beat the midnight/visibility refresh. Never copy a stale
     // day's displayed values into a new day or mutate a different account.
-    if (todayKey !== getLocalISODate() || (auth.currentUser?.uid ?? null) !== uid) return;
-    setStore((prev) => ({ ...prev, history: {
-      ...prev.history,
-      [todayKey]: { ...(prev.history[todayKey] ?? emptyEntry()), ...patch, updatedAt: Date.now() },
-    } }));
+    if (!loaded || todayKey !== getLocalISODate() || (auth.currentUser?.uid ?? null) !== uid) return;
+    setStore((prev) => {
+      const history = updateRecentDay(prev.history, day, patch);
+      return history === prev.history ? prev : { ...prev, history };
+    });
   };
+
+  const updateToday = (patch: Partial<DayEntry>) => updateDay(todayKey, patch);
 
   const toggleQuest = (quest: QuestId, day = todayKey) => {
     if (todayKey !== getLocalISODate() || (auth.currentUser?.uid ?? null) !== uid ||
@@ -134,9 +137,10 @@ export function useWellnessHistory(todayKey: string) {
     } } }));
   };
 
-  const togglePersonalGoal = () => {
-    if (todayKey !== getLocalISODate() || (auth.currentUser?.uid ?? null) !== uid) return;
-    setPrivateDays((prev) => ({ ...prev, [todayKey]: !prev[todayKey] }));
+  const togglePersonalGoal = (day = todayKey) => {
+    if (!loaded || todayKey !== getLocalISODate() || (auth.currentUser?.uid ?? null) !== uid ||
+      !editableDayKeys().includes(day)) return;
+    setPrivateDays((prev) => ({ ...prev, [day]: !prev[day] }));
   };
 
   const decideImport = (accept: boolean) => {
@@ -168,5 +172,5 @@ export function useWellnessHistory(todayKey: string) {
   };
 
   return { history: store.history, extras: store.extras, privateDays, offerImport, decideImport,
-    toggleQuest, saveWeight, togglePersonalGoal, loaded, updateToday, syncData, syncStatus, syncError, lastSyncedAt, onIdentityChange };
+    toggleQuest, saveWeight, togglePersonalGoal, loaded, updateDay, updateToday, syncData, syncStatus, syncError, lastSyncedAt, onIdentityChange };
 }

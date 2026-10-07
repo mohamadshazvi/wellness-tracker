@@ -62,6 +62,26 @@ export function getLocalISODate(d: Date = new Date()) {
   return buildDateKey(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+/** Today and the previous two local calendar days, not 48-hour intervals. */
+export function editableDayKeys(todayKey: string = getLocalISODate()) {
+  const anchor = new Date(`${todayKey}T12:00:00`);
+  if (Number.isNaN(anchor.getTime()) || getLocalISODate(anchor) !== todayKey) return [];
+  return Array.from({ length: 3 }, (_, offset) => {
+    const date = new Date(anchor);
+    date.setDate(date.getDate() - offset);
+    return getLocalISODate(date);
+  });
+}
+
+/** Preserve other dates/fields and timestamp corrections for cloud merging. */
+export function updateRecentDay(history: History, day: string, patch: Partial<DayEntry>, now = new Date()): History {
+  if (!editableDayKeys(getLocalISODate(now)).includes(day)) return history;
+  return {
+    ...history,
+    [day]: { ...(history[day] ?? emptyEntry()), ...patch, updatedAt: now.getTime() },
+  };
+}
+
 /** `YYYY-MM` prefix used to select every entry that belongs to a month. */
 export function monthKeyPrefix(year: number, monthIndex: number) {
   return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;

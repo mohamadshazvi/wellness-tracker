@@ -45,6 +45,12 @@ one-time import of this device's guest progress; the guest copy remains here.
 
 Today contains five obligatory prayers and two visually separate voluntary
 prayers. Voluntary prayers do not affect the 10-point daily score or streaks.
+Use **Today / Yesterday / 2 days ago** above the checklist to add missed daily
+activities or correct entries. Changes save automatically and update calendar
+scores, stats, and streaks. The edit window uses local calendar dates, resets to
+Today after midnight or an account change, and does not allow future or older
+daily edits. Personal Goal follows the selected date and stays device-only;
+weekly quests remain available on Today.
 Weekly side quests run Monday through Sunday in the device's local timezone:
 hand nails once (due Thursday), foot nails on two distinct days, and laundry
 once (due Saturday). Tasks may still be completed after their due day within

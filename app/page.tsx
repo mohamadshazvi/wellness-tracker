@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useWellnessData } from "../hooks/useWellnessData";
-import { emptyEntry, scoreOf } from "../lib/wellness";
+import { editableDayKeys, emptyEntry, scoreOf } from "../lib/wellness";
 import CalendarTab from "../components/CalendarTab";
 import ProfileTab from "../components/ProfileTab";
 import ProgressRing from "../components/ProgressRing";
@@ -22,6 +22,13 @@ export default function Home() {
   const [monthOffset, setMonthOffset] = useState(0);
   const [splashDone, setSplashDone] = useState(false);
   const [localMode, setLocalMode] = useState(false);
+  const [daySelection, setDaySelection] = useState<{ day: string; anchor: string; identity: string } | null>(null);
+  const identity = wellness.user?.uid ?? "guest";
+  const editableDays = editableDayKeys(wellness.todayKey);
+  // Reset to today after midnight or an account change; never reinterpret an
+  // old selection as a different day's checklist.
+  const selectedDay = daySelection?.anchor === wellness.todayKey && daySelection.identity === identity &&
+    editableDays.includes(daySelection.day) ? daySelection.day : wellness.todayKey;
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -40,7 +47,7 @@ export default function Home() {
     setTab("today");
   };
 
-  const today = wellness.history[wellness.todayKey] ?? emptyEntry();
+  const today = wellness.history[selectedDay] ?? emptyEntry();
   const { done, total } = scoreOf(today);
   const percent = Math.round((done / total) * 100) || 0;
 
@@ -66,7 +73,7 @@ export default function Home() {
         <header className="mb-8 flex items-center justify-between animate-fade-up">
           <div>
             <p className="text-[13px] font-medium uppercase tracking-wider text-zinc-400">
-              {new Date(`${wellness.todayKey}T12:00:00`).toLocaleDateString("en-US", {
+              {new Date(`${tab === "today" ? selectedDay : wellness.todayKey}T12:00:00`).toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
@@ -93,7 +100,34 @@ export default function Home() {
         <p>Bring this device’s guest progress into your account? Your guest copy will remain on this device. Personal Goal is not imported.</p>
         <div className="mt-3 flex gap-3"><button onClick={() => wellness.decideImport(true)} className="rounded-lg bg-emerald-500 px-3 py-2 text-zinc-950">Import progress</button><button onClick={() => wellness.decideImport(false)} className="rounded-lg border border-zinc-700 px-3 py-2">Not now</button></div>
       </div>}
-      {tab === "today" && <TodayTab key={`${wellness.user?.uid ?? "guest"}:${wellness.todayKey}`} today={today} todayKey={wellness.todayKey} updateToday={wellness.updateToday} extras={wellness.extras} privateChecked={!!wellness.privateDays[wellness.todayKey]} togglePersonalGoal={wellness.togglePersonalGoal} toggleQuest={wellness.toggleQuest} onWeightOpen={() => setTab("weight")} />}
+      {tab === "today" && <>
+        <div className="mb-6">
+          <div role="group" aria-label="Daily activity date" className="flex gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-2">
+            {editableDays.map((day, index) => <button
+              key={day}
+              type="button"
+              aria-pressed={selectedDay === day}
+              onClick={() => setDaySelection({ day, anchor: wellness.todayKey, identity })}
+              className={`flex-1 rounded-xl px-2 py-3 text-sm font-medium transition-colors ${selectedDay === day ? "bg-emerald-500 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"}`}
+            >{["Today", "Yesterday", "2 days ago"][index]}</button>)}
+          </div>
+          <p role="status" className="mt-3 text-xs text-zinc-400">
+            {selectedDay === wellness.todayKey ? "You can also update activities from the previous two days." : `Editing ${selectedDay}. Changes are saved automatically. Weekly quests are available on Today.`}
+          </p>
+        </div>
+        <TodayTab
+          key={`${identity}:${selectedDay}`}
+          today={today}
+          todayKey={wellness.todayKey}
+          updateToday={(patch) => wellness.updateDay(selectedDay, patch)}
+          extras={wellness.extras}
+          privateChecked={!!wellness.privateDays[selectedDay]}
+          togglePersonalGoal={() => wellness.togglePersonalGoal(selectedDay)}
+          toggleQuest={wellness.toggleQuest}
+          showWeeklyQuests={selectedDay === wellness.todayKey}
+          onWeightOpen={() => setTab("weight")}
+        />
+      </>}
 
       {tab === "calendar" && (
         <CalendarTab
