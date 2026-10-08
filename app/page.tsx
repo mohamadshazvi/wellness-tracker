@@ -53,7 +53,7 @@ export default function Home() {
 
   if (!wellness.loaded || !splashDone) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center" aria-busy="true">
+      <main className="app-screen flex flex-col items-center justify-center text-center" aria-busy="true">
         <h1 className="splash-title text-4xl font-bold tracking-tight text-zinc-50">Wellness</h1>
         <p role="status" className="splash-subtitle mt-3 text-xs font-medium uppercase tracking-[0.3em] text-zinc-400">Daily Focus</p>
         <div aria-hidden="true" className="mt-7 h-px w-32 overflow-hidden bg-zinc-800">
@@ -63,12 +63,12 @@ export default function Home() {
     );
   }
 
-  if (!wellness.user && !localMode) return <main className="mx-auto flex min-h-screen max-w-md items-center px-5 py-10">
+  if (!wellness.user && !localMode) return <main className="app-screen mx-auto flex max-w-md items-center">
     <div className="w-full"><AuthPanel onLogin={wellness.login} onLoginWithProvider={wellness.loginWithProvider} onResetPassword={wellness.resetPassword} authError={wellness.authError} onContinueLocally={continueLocally} /></div>
   </main>;
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-32 pt-10">
+    <main className="app-screen app-screen-with-tabs mx-auto max-w-md">
       {tab !== "profile" && (
         <header className="mb-8 flex items-center justify-between animate-fade-up">
           <div>

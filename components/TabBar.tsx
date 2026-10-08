@@ -26,7 +26,7 @@ export default function TabBar({
   onTabChange: (tab: TabId) => void;
 }) {
   return (
-    <nav aria-label="Main navigation" className="fixed bottom-4 left-2 right-2 z-50 mx-auto flex max-w-[400px] items-center justify-between gap-1 rounded-full glass-panel p-2">
+    <nav aria-label="Main navigation" className="app-tab-bar fixed z-50 mx-auto flex max-w-[400px] items-center justify-between gap-1 rounded-full glass-panel p-2">
       {TABS.map((t) => {
         const Icon = t.icon;
         const isActive = tab === t.id;

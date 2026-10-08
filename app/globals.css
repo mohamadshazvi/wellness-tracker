@@ -4,13 +4,37 @@
   --app-bg: #09090B; /* Zinc 950 */
   --app-bg-alt: #18181B; /* Zinc 900 */
   --glow-color: rgba(16, 185, 129, 0.2); /* Emerald glow */
+  color-scheme: dark;
+  background-color: var(--app-bg);
 }
 
 body {
+  margin: 0;
   background: radial-gradient(circle at top center, var(--app-bg-alt) 0%, var(--app-bg) 100%);
   background-attachment: fixed;
   min-height: 100vh;
+  min-height: 100dvh;
   color: #FAFAFA;
+}
+
+/* Paint the entire viewport while keeping content clear of iPhone cutouts. */
+.app-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: calc(2.5rem + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+  padding-left: calc(1.25rem + env(safe-area-inset-left, 0px));
+  padding-right: calc(1.25rem + env(safe-area-inset-right, 0px));
+}
+
+.app-screen-with-tabs {
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
+}
+
+.app-tab-bar {
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  left: calc(0.5rem + env(safe-area-inset-left, 0px));
+  right: calc(0.5rem + env(safe-area-inset-right, 0px));
 }
 
 button:focus-visible {

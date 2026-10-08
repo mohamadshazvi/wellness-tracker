@@ -15,6 +15,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#09090B",
+  colorScheme: "dark",
+  viewportFit: "cover",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -32,7 +34,7 @@ export default function RootLayout({
       className="antialiased selection:bg-[#10B981] selection:text-white"
     >
       <body
-        className={`${inter.variable} font-sans bg-transparent`}
+        className={`${inter.variable} font-sans`}
       >
         {children}
       </body>
